@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-django-app-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-django-app-app
+  template:
+    metadata:
+      labels:
+        app: api-django-app-app
+    spec:
+      containers:
+        - name: api-django-app-container
+          image: some_dockerhub_repo/api-django-app:202111041907
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: app-port
+              containerPort: 8000
+          livenessProbe:
+            httpGet:
+              path: /health/
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            failureThreshold: 2
+            timeoutSeconds: 5
+          env:
+            - name: DEBUG
+              value: 'False'
+            - name: SELF_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: opaque-environment-variables
+                  key: api_django_app_secret_key
+            - name: WHITELISTED_DOMAIN
+              valueFrom:
+                secretKeyRef:
+                  name: opaque-environment-variables
+                  key: api_django_app_whitelisted_domain
+            - name: NETWORK_CHECK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: opaque-environment-variables
+                  key: api_django_app_network_check_url
+            - name: DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: opaque-environment-variables
+                  key: api_django_app_database_name
+            - name: DATABASE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: opaque-environment-variables
+                  key: api_django_app_database_user
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: opaque-environment-variables
+                  key: api_django_app_database_password
+            - name: DATABASE_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: opaque-environment-variables
+                  key: api_django_app_database_host
+            - name: DATABASE_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: opaque-environment-variables
+                  key: api_django_app_database_port
+            - name: MEMCACHED_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: opaque-environment-variables
+                  key: api_django_app_memcached_host
+            - name: MEMCACHED_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: opaque-environment-variables
+                  key: api_django_app_memcached_port
+          command:
+            - 'sh'
+            - '-c'
+            - 'gunicorn -w 3 -b 0.0.0.0:8000 --forwarded-allow-ips="*" source.wsgi'

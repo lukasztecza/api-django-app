@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-django-app
+spec:
+  selector:
+    app: api-django-app-app
+  ports:
+    - name: app-port
+      port: 8000
