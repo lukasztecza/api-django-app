@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-django-app-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-django-app-app
+  template:
+    metadata:
+      labels:
+        app: api-django-app-app
+    spec:
+      volumes:
+        - name: app-volume
+          hostPath:
+            path: /dev-host-dir/api-django-app
+      containers:
+        - name: api-django-app-container
+          image: api-django-app:202111041916
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: app-port
+              containerPort: 8000
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - 'sh'
+                  - '-c'
+                  - "python manage.py showmigrations | grep -v '\\[' | xargs -I {app} python manage.py migrate {app} zero \
+                     && python manage.py migrate \
+                     && echo \"from django.contrib.auth.models import User; User.objects.create_superuser(\'admin\', \'admin@example.com\', \'mypass\')\" | python manage.py shell"
+          volumeMounts:
+            - name: app-volume
+              mountPath: '/app'
+          env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: 'True'
+            - name: DEBUG
+              value: 'True'
+            - name: SELF_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: SECRET_KEY
+              value: 'some_secret'
+            - name: WHITELISTED_DOMAIN
+              value: 'api.django.app.localhost'
+            - name: NETWORK_CHECK_URL
+              value: 'http://dev-nginx:8181/nginxhealth'
+            - name: DATABASE_NAME
+              value: 'mydb'
+            - name: DATABASE_USER
+              value: 'root'
+            - name: DATABASE_PASSWORD
+              value: 'mypass'
+            - name: DATABASE_HOST
+              value: 'dev-pgsql'
+            - name: DATABASE_PORT
+              value: '5432'
+            - name: MEMCACHED_HOST
+              value: 'dev-memcached'
+            - name: MEMCACHED_PORT
+              value: '11211'
+          command:
+            - 'sh'
+            - '-c'
+            - 'python /app/manage.py runserver 0.0.0.0:8000'
