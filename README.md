@@ -1,4 +1,4 @@
-# python-django-rest
+# api-django-app
 Skeleton for django rest app
 ### Use on dev (if you have minikube-dev-stack)
 - Deploy app on your dev cluster
@@ -14,7 +14,11 @@ docker exec -ti -uroot django_app_container_in_minikube sh
 ```
 chown 1010:1010 directory_that_will_be_mounted
 ```
-- Note that django creates static files for admin and api views and this repo has built values in it (remember to update them if you add assets)
+- Note that django creates static files for admin and api views, so you need to collect them if you plan to serve them using proxy server (this will populate `./assets` directory)
+```
+kubectl exec -ti api_django_app_pod -- sh
+python manage.py collectstatic
+```
 - In order to rebuild these values you need to make sure container has permissions to do it
 ```
 chown 1010:1010 ./assets
