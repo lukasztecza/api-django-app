@@ -1,5 +1,23 @@
 # api-django-app
 Skeleton for django rest app
+### Start new app from skeleton
+- Create your new repo or clone empty
+```
+git clone ssh://somegitrepo/someuser/some-new-app
+```
+- Then create repo locally, pull api-django-app repo as a skeleton, add commit and push to new repo
+```
+cd some-new-app
+git remote add skeleton git@github.com:lukasztecza/api-django-app.git
+git pull skeleton master --allow-unrelated-histories
+```
+replace all occurences of `api-django-app` with your `some-new-app` in manifest files
+```
+git add .
+git commit -m 'initial commit'
+git push origin master
+git remote remove skeleton
+```
 ### Use on dev (if you have minikube-dev-stack)
 - Deploy app on your dev cluster
 ```
